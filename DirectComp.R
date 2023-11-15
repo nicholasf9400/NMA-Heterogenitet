@@ -1,4 +1,5 @@
 DirectComp <- function(net, t1, t2, effect){
+  
   require(dplyr)
   require(netmeta)
   
@@ -7,6 +8,7 @@ DirectComp <- function(net, t1, t2, effect){
   t_list <- t_list[order(t_list)]
   comp <- paste0(t_list[1],':',t_list[2]); rm(t_list)
   
+  log_sm <- (sm == "RR")|(sm =="OR")|(sm == 'HR')
   #What proportion is made from direct evidence?
   prop.dir <- get(paste0('prop.direct.', effect), net)
   
@@ -14,18 +16,28 @@ DirectComp <- function(net, t1, t2, effect){
   if (!(comp %in% net$comparisons)) {
     stop('Comparison is not valid! Check spelling and try again.')
   }
-  if (prop.dir[comp]==0) {
-    stop('Comparison does not contain direct evidence')
-  }
-  
   
   #Extract data from netmeta object
   dir.TE <- get(paste0('TE.direct.', effect), net)[ t1, t2 ]
   sm <- net$sm
-  d <- net$data %>% filter((treat1==t1 & treat2==t2) | (treat1==t2 & treat2==t1))
+  d_temp <- net$data %>% filter((treat1==t1 & treat2==t2) | (treat1==t2 & treat2==t1))
+  
+  #Flip data to correct comparisons
+  if(!all(data_comp$treat1 == t1) & !all(data_comp$treat2 == t2)){
+    for (i in 1:nrow(data_comp)) {
+      if (data_comp[x,]$treat1 == t2 & data_comp[x,]$treat2 == t1){
+        d$TE <- -d_temp$TE
+        d$treat1 <- d_temp$treat2
+        d$treat2 <- d_temp$treat1
+        #Flyt info
+      }
+    }
+  }
+    
   
   
-  MA <- metagen(TE, seTE, studlab, data=d, sm=sm)
+  MA <- metagen(TE, seTE, studlab, data=d, sm=sm, 
+                label.e = t1, label.c = t2)
   MA.dir <- get(paste0('TE.', effect), MA)
   MA.SE.dir <- get(paste0('seTE.', effect), MA)
   
@@ -46,7 +58,7 @@ DirectComp <- function(net, t1, t2, effect){
   total <- c(MA.dir, MA.SE.dir)
   
   #Compile output for direct effect
-  if((sm == "RR")|(sm =="OR")|(sm == 'HR')){
+  if(log_sm){
     ef <- data.frame(
       d$studlab,
       d$treat1,
@@ -54,8 +66,8 @@ DirectComp <- function(net, t1, t2, effect){
       paste0(round(weights*100,2),'%'),
       paste0(round(exp(d$TE),2), ' (', round(exp(d$TE -1.96*d$seTE),2), '-', round(exp(d$TE +1.96*d$seTE),2), ')'),
       round(exp(d$seTE),2),
-      round(exp(d$TE -1.96*d$seTE), 2),
-      round(exp(d$TE +1.96*d$seTE), 2),
+      round(exp(d$TE - 1.96*d$seTE), 2),
+      round(exp(d$TE + 1.96*d$seTE), 2),
       round(exp(d$TE), 2)
     )
     ef <- rbind(ef, c('Total (95% CI)', '', '', paste0(round(dir.w*100,2),'%'), 

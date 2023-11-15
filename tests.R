@@ -3,7 +3,7 @@
 library(netmeta)
 data("Gurusamy2011")
 
-d <- pairwise(treatment, death, n, data = Gurusamy2011, studlab = study, incr = 0.5, allstudies = T)
+d <- pairwise(treatment, death, n, data = Gurusamy2011, studlab = study)
 
 net <- netmeta(d, sm = 'RR', reference.group = 'Control/Placebo')
 
@@ -24,3 +24,5 @@ source('IndComp.R')
 IndComb(net, t1, t2, 'random')
 
 
+a <- netsplit(net)
+forest(a)
