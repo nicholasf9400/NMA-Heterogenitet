@@ -21,3 +21,6 @@ DirectComp(net, t1, t2, 'random')
 
 source('IndComp.R')
 
+IndComb(net, t1, t2, 'random')
+
+

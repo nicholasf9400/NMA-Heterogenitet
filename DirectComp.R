@@ -52,14 +52,14 @@ DirectComp <- function(net, t1, t2, effect){
       d$treat1,
       d$treat2,
       paste0(round(weights*100,2),'%'),
-      paste0(exp(round(d$TE,2)), ' (', exp(round(d$TE -1.96*d$seTE,2)), '-', exp(round(d$TE +1.96*d$seTE,2)), ')'),
-      exp(round(d$seTE,2)),
-      exp(round(d$TE -1.96*d$seTE, 2)),
-      exp(round(d$TE +1.96*d$seTE, 2)),
-      exp(round(d$TE, 2))
+      paste0(round(exp(d$TE),2), ' (', round(exp(d$TE -1.96*d$seTE),2), '-', round(exp(d$TE +1.96*d$seTE),2), ')'),
+      round(exp(d$seTE),2),
+      round(exp(d$TE -1.96*d$seTE), 2),
+      round(exp(d$TE +1.96*d$seTE), 2),
+      round(exp(d$TE), 2)
     )
     ef <- rbind(ef, c('Total (95% CI)', '', '', paste0(round(dir.w*100,2),'%'), 
-                      paste0(exp(round(total[1],2)), ' (', exp(round(total[1] - 1.96 * total[2],2)),'-', exp(round(total[1] + 1.96 * total[2],2)), ')'), total[2], exp(total[1] - 1.96 * total[2]), exp(total[1] + 1.96 * total[2]), exp(total[1])))
+                      paste0(round(exp(total[1]),2), ' (', round(exp(total[1] - 1.96 * total[2]),2),'-', round(exp(total[1] + 1.96 * total[2]),2), ')'), exp(total[2]), exp(total[1] - 1.96 * total[2]), exp(total[1] + 1.96 * total[2]), exp(total[1])))
     
   }else{
     ef <- data.frame(
