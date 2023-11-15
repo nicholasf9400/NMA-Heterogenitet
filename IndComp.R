@@ -1,7 +1,13 @@
-# FIRST ORDER INDRECT EFFECT FUNCTION
-
 IndComb <- function(net, t1, t2, effect){
   require(igraph)
+  
+  if (class(net) != 'netmeta') {
+    
+    stop('net must be netmeta object')
+  
+  }
+  
+  log_sm <- net$sm == 'HR' | net$sm == 'OR' | net$sm == 'RR'
   
   #T1:T2 may be switched depends on alphabetical order
   t_list <- c(t1,t2)
@@ -47,23 +53,40 @@ IndComb <- function(net, t1, t2, effect){
   ind.TE <- get(paste0('TE.indirect.', effect), net)[t1,t2]
   ind.seTE <- get(paste0('seTE.indirect.', effect), net)[t1,t2]
   
-  out <- data.frame(
-    t1,
-    ind.res[,1],
-    t2,
-    paste0(ind.res[,2], ' (', round(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3]),2), '-', round(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3]),2), ')'),
-    ind.res[,3],
-    round(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3]), 2),
-    round(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3]), 2),
-    ind.res[,2]
-  )
+  if(log_sm){
+    out <- data.frame(
+      t1,
+      ind.res[,1],
+      t2,
+      paste0(exp(as.numeric(ind.res[,2])), ' (', round(exp(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3])),2), '-', round(exp(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3])),2), ')'),
+      ind.res[,3],
+      round(exp(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3])), 2),
+      round(exp(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3])), 2),
+      exp(as.numeric(ind.res[,2]))
+    )
+    
+    tot.ind <- data.frame('Total Indrect Effect (95% CI)','','', paste0(exp(ind.TE), ' (',exp(ind.TE-1.96*ind.seTE), exp(ind.TE+1.96*ind.seTE), ')'), ind.seTE
+                          ,exp(ind.TE-1.96*ind.seTE), exp(ind.TE+1.96*ind.seTE), exp(ind.TE))
+  }else{
+    out <- data.frame(
+      t1,
+      ind.res[,1],
+      t2,
+      paste0(ind.res[,2], ' (', round(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3]),2), '-', round(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3]),2), ')'),
+      ind.res[,3],
+      round(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3]), 2),
+      round(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3]), 2),
+      ind.res[,2]
+    )
+    
+    tot.ind <- data.frame('Total Indrect Effect (95% CI)','','', paste0(ind.TE, ' (',ind.TE-1.96*ind.seTE,ind.TE+1.96*ind.seTE, ')'), ind.seTE
+                          ,ind.TE-1.96*ind.seTE,ind.TE+1.96*ind.seTE, ind.TE)
+  }
+
+  # Name output for compiling results
   colnames(out) <- c('Treatment 1', "via", 'Treatment 2', paste0(net$sm, ' (95% CI)'), 'se', 'lower', 'upper', 'est')
-  
-  tot.ind <- data.frame('Total Indrect Effect (95% CI)','','', paste0(ind.TE, ' (',ind.TE-1.96*ind.seTE,ind.TE+1.96*ind.seTE, ')'), ind.seTE
-                        ,ind.TE-1.96*ind.seTE,ind.TE+1.96*ind.seTE, ind.TE)
-  colnames(tot.ind) <- c('Treatment 1', 'Treatment 2', "via", paste0(net$sm, ' (95% CI)'), 'se', 'lower', 'upper', 'est')
+  colnames(tot.ind) <- colnames(out)
   
   out <- rbind(out, tot.ind)
-  
   return(out)
 }

@@ -15,5 +15,9 @@ t2 <- net$treat2[3]
 effect <- 'random'
 net <- net
 
-test <- DirectComp(net, t1, t2, 'random')
+source('DirectComp.R')
+
+DirectComp(net, t1, t2, 'random')
+
+source('IndComp.R')
 
