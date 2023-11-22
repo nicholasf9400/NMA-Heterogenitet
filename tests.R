@@ -23,6 +23,10 @@ source('IndComp.R')
 
 IndComb(net, t1, t2, 'random')
 
+source('TotalEffect.R')
 
-a <- netsplit(net)
-forest(a)
+TotalEffect(t1, t2, net, 'random')
+
+source('DecompEffect.R')
+
+DecompEffect(net, t1, t2, 'random')

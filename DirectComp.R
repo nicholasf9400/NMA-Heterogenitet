@@ -8,6 +8,8 @@ DirectComp <- function(net, t1, t2, effect){
   t_list <- t_list[order(t_list)]
   comp <- paste0(t_list[1],':',t_list[2]); rm(t_list)
   
+  sm <- net$sm
+  
   log_sm <- (sm == "RR")|(sm =="OR")|(sm == 'HR')
   #What proportion is made from direct evidence?
   prop.dir <- get(paste0('prop.direct.', effect), net)
@@ -20,21 +22,7 @@ DirectComp <- function(net, t1, t2, effect){
   #Extract data from netmeta object
   dir.TE <- get(paste0('TE.direct.', effect), net)[ t1, t2 ]
   sm <- net$sm
-  d_temp <- net$data %>% filter((treat1==t1 & treat2==t2) | (treat1==t2 & treat2==t1))
-  
-  #Flip data to correct comparisons
-  if(!all(data_comp$treat1 == t1) & !all(data_comp$treat2 == t2)){
-    for (i in 1:nrow(data_comp)) {
-      if (data_comp[x,]$treat1 == t2 & data_comp[x,]$treat2 == t1){
-        d$TE <- -d_temp$TE
-        d$treat1 <- d_temp$treat2
-        d$treat2 <- d_temp$treat1
-        #Flyt info
-      }
-    }
-  }
-    
-  
+  d <- net$data %>% filter((treat1==t1 & treat2==t2) | (treat1==t2 & treat2==t1))
   
   MA <- metagen(TE, seTE, studlab, data=d, sm=sm, 
                 label.e = t1, label.c = t2)
@@ -72,7 +60,6 @@ DirectComp <- function(net, t1, t2, effect){
     )
     ef <- rbind(ef, c('Total (95% CI)', '', '', paste0(round(dir.w*100,2),'%'), 
                       paste0(round(exp(total[1]),2), ' (', round(exp(total[1] - 1.96 * total[2]),2),'-', round(exp(total[1] + 1.96 * total[2]),2), ')'), exp(total[2]), exp(total[1] - 1.96 * total[2]), exp(total[1] + 1.96 * total[2]), exp(total[1])))
-    
   }else{
     ef <- data.frame(
       d$studlab,

@@ -6,6 +6,7 @@ DecompEffect <- function(net, t1, t2, effect){
   
   require(forestplot)
   require(forestploter)
+  require(grid)
   
   
   #T1:T2 may be switched depends on alphabetical order
@@ -21,13 +22,18 @@ DecompEffect <- function(net, t1, t2, effect){
   #Check if comparison is only direct evidence
   prop.dir <- get(paste0('prop.direct.', effect), net)
   
-  if (prop.dir[comp]==1) {
+  if (prop.dir[comp] == 1) {
+    
     cat('Comparison is made using direct evidence only...\n')
     dir.effect <- DirectComp(net, t1, t2, effect)
+  
   }else{
-    if (prop.dir[comp]==0) {
+    
+    if (prop.dir[comp] == 0) {
+      
       cat('Comparison only consists of indirect evidence')
       ind.effect <- IndComb(net,t1,t2,effect)
+      
     }else{
       
       a <- DirectComp(net,t1,t2,effect)
@@ -35,10 +41,11 @@ DecompEffect <- function(net, t1, t2, effect){
       ind.effect <- IndComb(net,t1,t2,effect)
       tot.effect <- TotalEffect(t1, t2, net, effect)
       
-      min.scale <- min(as.numeric(dir.effect$lower), as.numeric(ind.effect$lower), as.numeric(tot.effect$tot.lower))
-      max.scale <- max(as.numeric(dir.effect$upper), as.numeric(ind.effect$upper), as.numeric(tot.effect$tot.upper))
+      #Scale of forest plot
+      min.scale <- min(as.numeric(dir.effect$lower), as.numeric(ind.effect$lower), as.numeric(tot.effect$tot.lower), na.rm = T)
+      max.scale <- max(as.numeric(dir.effect$upper), as.numeric(ind.effect$upper), as.numeric(tot.effect$tot.upper), na.rm = T)
       
-      #Plotting
+      #Plotting themes
       theme <- forest_theme(
         base_size = 10,
         # Confidence interval point shape, line type/color/width
@@ -66,14 +73,14 @@ DecompEffect <- function(net, t1, t2, effect){
         footnote_col = "blue")
       
       
-      dt <- data.frame(cbind(dir.effect[,1:4],rep(' ', nrow(dir.effect)), dir.effect[,5:9]))
-      colnames(dt) <- c('Study', 'Treatment 1', 'Treatment 2', 'Weight', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
+      dt <- data.frame(cbind(dir.effect[,1:4],rep(' ', nrow(dir.effect)), rep(' ', nrow(dir.effect)), dir.effect[,5:9]))
+      colnames(dt) <- c('Study', 'Treatment 1', 'Treatment 2', 'Weight', ' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
       
-      p.dir <- forestploter::forest(dt[,1:6], 
+      p.dir <- forestploter::forest(dt[,1:7], 
                                     est = as.numeric(dt$est),
                                     lower=as.numeric(dt$lower),
                                     upper=as.numeric(dt$upper),
-                                    ci_column = 5,
+                                    ci_column = 6,
                                     title = 'Direct effects',
                                     theme = theme,
                                     xlim = c(min.scale, max.scale),
@@ -92,14 +99,14 @@ DecompEffect <- function(net, t1, t2, effect){
                         x = unit(0,'npc'), y = unit(1, "npc"))
       
       #Indirect effect
-      it <- data.frame(cbind(ind.effect[,1:3], rep(' ', nrow(ind.effect)), rep(' ', nrow(ind.effect)), ind.effect[,4:8]))
-      colnames(it) <- c('Treatment 1', 'Treatment 2', 'via', ' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
+      it <- data.frame(cbind(ind.effect[,1:3], ind.effect[,9], rep(' ', nrow(ind.effect)), rep(' ', nrow(ind.effect)), ind.effect[,4:8]))
+      colnames(it) <- c('Treatment 1', 'Treatment 2', 'via', 'I2%', ' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
       
-      p.ind <- forestploter::forest(it[,1:6], 
+      p.ind <- forestploter::forest(it[,1:7], 
                                     est = as.numeric(it$est),
                                     lower = as.numeric(it$lower),
                                     upper = as.numeric(it$upper),
-                                    ci_column = 5, 
+                                    ci_column = 6, 
                                     title = 'First Order Indirect effects',
                                     theme = theme,
                                     xlim = c(min.scale, max.scale),
@@ -109,22 +116,22 @@ DecompEffect <- function(net, t1, t2, effect){
                          row = nrow(it),
                          gp = gpar(fontface = 'bold'))
       
-      tt <- data.frame(cbind(tot.effect[,1:2], '', '', '', tot.effect[,4:8]))
-      colnames(tt) <- c('Treatment 1', 'Treatment 2', '','', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
+      tt <- data.frame(cbind(tot.effect[,1:2], ' ', ' ', ' ', ' ', tot.effect[,4:8]))
+      colnames(tt) <- c('Treatment 1', 'Treatment 2', ' ',' ',' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
       
-      p.tot <- forestploter::forest(tt[,1:6],
+      p.tot <- forestploter::forest(tt[,1:7],
                                     est = as.numeric(tt$est),
                                     lower = as.numeric(tt$lower),
                                     upper = as.numeric(tt$upper),
-                                    ci_column = 5, 
-                                    title = 'Total effects',
+                                    ci_column = 6, 
+                                    title = 'Total effect',
                                     theme = theme,
                                     xlim = c(min.scale, max.scale),
                                     is_summary = T)
       
       
-      grid:grid.newpage()
-      grid:grid.draw(rbind(p.dir, p.ind, p.tot))
+      #grid:grid.newpage()
+      print(grid.draw(rbind(p.dir, p.ind, p.tot)))
     }
   }
   
