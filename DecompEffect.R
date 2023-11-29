@@ -9,17 +9,21 @@ DecompEffect <- function(net, t1, t2, effect){
   require(grid)
   
   
-  #T1:T2 may be switched depends on alphabetical order
+  # t1:t2 may be switched depending on alphabetical order
   t_list <- c(t1,t2)
   t_list <- t_list[order(t_list)]
   comp <- paste0(t_list[1],':',t_list[2]); rm(t_list)
   
-  #Check if comparison is valid
+  # Determine if log transform is needed
+  sm <- net$sm
+  log_sm <- (sm == 'HR' | sm == 'OR' | sm == 'RR')
+  
+  # Check if comparison is valid
   if (!(comp %in% net$comparisons)) {
     stop('Comparison is not valid! Check spelling and try again.')
   }
   
-  #Check if comparison is only direct evidence
+  # Check if comparison is only direct evidence
   prop.dir <- get(paste0('prop.direct.', effect), net)
   
   if (prop.dir[comp] == 1) {
@@ -29,6 +33,7 @@ DecompEffect <- function(net, t1, t2, effect){
   
   }else{
     
+    # If no direct evidence, only indirect evidence will be plotted
     if (prop.dir[comp] == 0) {
       
       cat('Comparison only consists of indirect evidence')
@@ -36,16 +41,17 @@ DecompEffect <- function(net, t1, t2, effect){
       
     }else{
       
+      # Extracting direct, indirect and total effects
       a <- DirectComp(net,t1,t2,effect)
       dir.effect <- a$ef
       ind.effect <- IndComb(net,t1,t2,effect)
       tot.effect <- TotalEffect(t1, t2, net, effect)
       
-      #Scale of forest plot
+      # Scale of forest plot
       min.scale <- min(as.numeric(dir.effect$lower), as.numeric(ind.effect$lower), as.numeric(tot.effect$tot.lower), na.rm = T)
       max.scale <- max(as.numeric(dir.effect$upper), as.numeric(ind.effect$upper), as.numeric(tot.effect$tot.upper), na.rm = T)
       
-      #Plotting themes
+      # Plotting themes
       theme <- forest_theme(
         base_size = 10,
         # Confidence interval point shape, line type/color/width
@@ -73,9 +79,11 @@ DecompEffect <- function(net, t1, t2, effect){
         footnote_col = "blue")
       
       
+      # Formatting data for direct evidence
       dt <- data.frame(cbind(dir.effect[,1:4],rep(' ', nrow(dir.effect)), rep(' ', nrow(dir.effect)), dir.effect[,5:9]))
       colnames(dt) <- c('Study', 'Treatment 1', 'Treatment 2', 'Weight', ' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
       
+      # Plot direct evidence
       p.dir <- forestploter::forest(dt[,1:7], 
                                     est = as.numeric(dt$est),
                                     lower=as.numeric(dt$lower),
@@ -83,13 +91,16 @@ DecompEffect <- function(net, t1, t2, effect){
                                     ci_column = 6,
                                     title = 'Direct effects',
                                     theme = theme,
+                                    x_trans = ifelse(log_sm, 'log', 'none'),
                                     xlim = c(min.scale, max.scale),
                                     is_summary = c(rep(F, nrow(dt)-1), T))
       
+      # Add bold text for total direct effect
       p.dir <- edit_plot(p.dir, 
                          row = nrow(dt),
                          gp = gpar(fontface = 'bold'))
       
+      # Add footnote with heterogeneity info
       p.dir <- add_grob(p.dir, row = nrow(dt)+1, col = 1:6, order = "background", 
                         gb_fn = gridtext::richtext_grob,
                         text = a$fn,
@@ -98,24 +109,29 @@ DecompEffect <- function(net, t1, t2, effect){
                         halign = 0, valign = 1,
                         x = unit(0,'npc'), y = unit(1, "npc"))
       
-      #Indirect effect
+      # Format indirect effect data for plotting
       it <- data.frame(cbind(ind.effect[,1:3], ind.effect[,9], rep(' ', nrow(ind.effect)), rep(' ', nrow(ind.effect)), ind.effect[,4:8]))
       colnames(it) <- c('Treatment 1', 'Treatment 2', 'via', 'I2%', ' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
       
+      # Plot first order and total indirect effects
       p.ind <- forestploter::forest(it[,1:7], 
                                     est = as.numeric(it$est),
                                     lower = as.numeric(it$lower),
                                     upper = as.numeric(it$upper),
-                                    ci_column = 6, 
+                                    ci_column = 6,
+                                    x_trans = ifelse(log_sm, 'log', 'none'), 
                                     title = 'First Order Indirect effects',
                                     theme = theme,
                                     xlim = c(min.scale, max.scale),
                                     is_summary = c(rep(F, nrow(it)-1), T))
       
+      # Bold text for total indirect effect
       p.ind <- edit_plot(p.ind,
                          row = nrow(it),
                          gp = gpar(fontface = 'bold'))
       
+      
+      # Format data 
       tt <- data.frame(cbind(tot.effect[,1:2], ' ', ' ', ' ', ' ', tot.effect[,4:8]))
       colnames(tt) <- c('Treatment 1', 'Treatment 2', ' ',' ',' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
       
@@ -123,7 +139,8 @@ DecompEffect <- function(net, t1, t2, effect){
                                     est = as.numeric(tt$est),
                                     lower = as.numeric(tt$lower),
                                     upper = as.numeric(tt$upper),
-                                    ci_column = 6, 
+                                    ci_column = 6,
+                                    x_trans = ifelse(log_sm, 'log', 'none'), 
                                     title = 'Total effect',
                                     theme = theme,
                                     xlim = c(min.scale, max.scale),
