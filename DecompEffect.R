@@ -132,10 +132,11 @@ DecompEffect <- function(net, t1, t2, effect){
       
       
       # Format data 
-      tt <- data.frame(cbind(tot.effect[,1:2], ' ', ' ', ' ', ' ', tot.effect[,4:8]))
-      colnames(tt) <- c('Treatment 1', 'Treatment 2', ' ',' ',' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
+      tt <- data.frame(c(tot.effect$t1, tot.effect$t2, ' ', ' ', ' ', ' ', tot.effect[,4:8]))
+      colnames(tt) <- c('Treatment 1', 'Treatment 2', " "," "," ", 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
       
-      p.tot <- forestploter::forest(tt[,1:7],
+      # Plot total network effect
+      p.tot <- forestploter::forest(tt[, 1:7],
                                     est = as.numeric(tt$est),
                                     lower = as.numeric(tt$lower),
                                     upper = as.numeric(tt$upper),
@@ -147,8 +148,8 @@ DecompEffect <- function(net, t1, t2, effect){
                                     is_summary = T)
       
       
-      #grid:grid.newpage()
-      print(grid.draw(rbind(p.dir, p.ind, p.tot)))
+      grid:grid.newpage()
+      grid.draw(rbind(p.dir, p.ind, p.tot))
     }
   }
   
