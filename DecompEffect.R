@@ -132,11 +132,20 @@ DecompEffect <- function(net, t1, t2, effect){
       
       
       # Format data 
-      tt <- data.frame(c(tot.effect$t1, tot.effect$t2, ' ', ' ', ' ', ' ', tot.effect[,4:8]))
+      tt <- data.frame(c(tot.effect$t1, 
+                         tot.effect$t2, 
+                         rep(' ', nrow(tot.effect)), 
+                         rep(' ', nrow(tot.effect)), 
+                         rep(' ', nrow(tot.effect)), 
+                         rep(' ', nrow(tot.effect)), 
+                         tot.effect[,4:8]))
       colnames(tt) <- c('Treatment 1', 'Treatment 2', " "," "," ", 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
       
+      tt_temp <- tt[, 1:7]
+      colnames(tt_temp) <- c('Treatment 1', 'Treatment 2', " "," "," ", 'Outcome', 'RR (95% CI)')
+      
       # Plot total network effect
-      p.tot <- forestploter::forest(tt[, 1:7],
+      p.tot <- forestploter::forest(tt_temp,
                                     est = as.numeric(tt$est),
                                     lower = as.numeric(tt$lower),
                                     upper = as.numeric(tt$upper),
