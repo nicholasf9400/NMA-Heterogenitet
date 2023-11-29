@@ -3,26 +3,42 @@ DirectComp <- function(net, t1, t2, effect){
   require(dplyr)
   require(netmeta)
   
-  #T1:T2 may be switched depends on alphabetical order
+  # t1:t2 may be switched depends on alphabetical order
   t_list <- c(t1, t2)
   t_list <- t_list[order(t_list)]
   comp <- paste0(t_list[1],':',t_list[2]); rm(t_list)
   
+  # Determining if outcome needs log transform
   sm <- net$sm
-  
   log_sm <- (sm == "RR")|(sm =="OR")|(sm == 'HR')
-  #What proportion is made from direct evidence?
+  
+  # What proportion is made from direct evidence?
   prop.dir <- get(paste0('prop.direct.', effect), net)
   
-  #Check if comparison is in the network
+  # Check if comparison is in the network
   if (!(comp %in% net$comparisons)) {
     stop('Comparison is not valid! Check spelling and try again.')
   }
   
-  #Extract data from netmeta object
+  # Extract data from netmeta object
   dir.TE <- get(paste0('TE.direct.', effect), net)[ t1, t2 ]
   sm <- net$sm
   d <- net$data %>% filter((treat1==t1 & treat2==t2) | (treat1==t2 & treat2==t1))
+  
+  # 'Flip' data to match t1 and t2
+  flip_ind <- (d$treat1 == t2 & d$treat2 == t1)
+  
+  d_old <- d
+  
+  d <- d_old %>%
+    rename(TE_old = TE) %>%
+    mutate(TE = ifelse(treat1 == t2 & treat2 == t1, 
+                       ifelse(log_sm, 
+                              1/TE_old, 1 - TE_old),
+                       TE_old)) #%>%
+    mutate(treat1 = ifelse(flip_ind, t1, treat2)) %>%
+    mutate(treat2 = ifelse(flip_ind, t2, treat1))
+  
   
   MA <- metagen(TE, seTE, studlab, data=d, sm=sm, 
                 label.e = t1, label.c = t2)
