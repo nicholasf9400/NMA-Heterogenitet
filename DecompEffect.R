@@ -232,7 +232,6 @@ DecompEffect <- function(net, t1, t2, effect){
                                   is_summary = T)
     
     # Output
-    grid:grid.newpage()
     grid.draw(rbind(p.dir, p.ind, p.tot))
     
   }
