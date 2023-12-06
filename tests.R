@@ -5,7 +5,7 @@ data("Gurusamy2011")
 
 d <- pairwise(treatment, death, n, data = Gurusamy2011, studlab = study)
 
-net <- netmeta(d, sm = 'RR', reference.group = 'Control/Placebo')
+net <- netmeta(d, sm = 'RR', reference.group = 'Control/Placebo', )
 
 
 #Which direct effect contribute to a arbitrary mixed estimate
