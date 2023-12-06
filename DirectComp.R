@@ -32,10 +32,9 @@ DirectComp <- function(net, t1, t2, effect){
   
   d <- d_old %>%
     rename(TE_old = TE) %>%
-    mutate(TE = ifelse(treat1 == t2 & treat2 == t1, 
-                       ifelse(log_sm, 
-                              1/TE_old, 1 - TE_old),
-                       TE_old)) #%>%
+    mutate(TE = ifelse(flip_ind, 
+                       -TE_old,
+                       TE_old)) %>%
     mutate(treat1 = ifelse(flip_ind, t1, treat2)) %>%
     mutate(treat2 = ifelse(flip_ind, t2, treat1))
   
