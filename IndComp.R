@@ -1,4 +1,5 @@
 IndComb <- function(net, t1, t2, effect){
+  
   require(igraph)
   require(dplyr)
   
@@ -29,7 +30,7 @@ IndComb <- function(net, t1, t2, effect){
   )
   
   # Extract and compute indirect effect for all first order loops in network
-  ind.res <- matrix(NA, length(sum(ind==1)), 4)
+  ind.res <- matrix(NA, sum(ind==1), 4)
   k <- 1
   for (i in 1:length(ind)){
     if(ind[i] == 1){
@@ -75,6 +76,16 @@ IndComb <- function(net, t1, t2, effect){
       k <- k+1
     }
   }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   # TOTAL INDIRECT EFFECT
   ind.TE <- get(paste0('TE.indirect.', effect), net)[t1,t2]
