@@ -1,12 +1,18 @@
 # Test fil for funktioner
 
 library(netmeta)
-data("Gurusamy2011")
+data("Linde2016")
 
-d <- pairwise(treatment, death, n, data = Gurusamy2011, studlab = study)
+d <- pairwise(treat = list(treat1, treat2),
+              event = list(resp1, resp2),
+              n = list(n1, n2),
+              data = Linde2016, 
+              studlab = id,
+              sm = 'RR')
 
-net <- netmeta(d, sm = 'RR', reference.group = 'Control/Placebo', )
+net <- netmeta(d, sm = 'RR', reference.group = 'Placebo')
 
+netgraph(net)
 
 #Which direct effect contribute to a arbitrary mixed estimate
 #Inputs
