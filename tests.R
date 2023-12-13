@@ -16,8 +16,8 @@ netgraph(net)
 
 #Which direct effect contribute to a arbitrary mixed estimate
 #Inputs
-t1 <- net$treat1[2]
-t2 <- net$treat2[3]
+t1 <- "TCA"
+t2 <- "Placebo"
 effect <- 'random'
 net <- net
 
