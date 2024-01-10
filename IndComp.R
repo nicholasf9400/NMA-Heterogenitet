@@ -77,28 +77,32 @@ IndComb <- function(net, t1, t2, effect){
     }
   }
   
-  ind.paths <- igraph::all_simple_paths(graph, from = t1, to = t2, cutoff = -1)
-  
-  paths <- list()
-  k <- 1
-  for (i in 1:length(ind.paths)) {
-    if (length(ind.paths[[i]]) > 3) {
-      paths[[k]] <- ind.paths[[i]]
-      k <- k + 1
-    }
-  }
-  rm(ind.paths)
-  
-  # Get relevant edges
-  
-  edges <- c()
-  for (i in 1:length(paths)) {
-    for (j in 1:(length(paths[[i]])-1)) {
-      edges <- rbind(edges, c(names(paths[[i]][j]), names(paths[[i]][j+1])))
-    }
-  }
-  
+  # ind.paths <- igraph::all_simple_paths(graph, from = t1, to = t2, cutoff = -1)
+  # 
+  # paths <- list()
+  # k <- 1
+  # for (i in 1:length(ind.paths)) {
+  #   if (length(ind.paths[[i]]) > 3) {
+  #     paths[[k]] <- ind.paths[[i]]
+  #     k <- k + 1
+  #   }
+  # }
+  # rm(ind.paths)
+  # 
+  # # Get relevant edges
+  # 
+  # edges <- c()
+  # for (i in 1:length(paths)) {
+  #   for (j in 1:(length(paths[[i]])-1)) {
+  #     edges <- rbind(edges, c(names(paths[[i]][j]), names(paths[[i]][j+1])))
+  #   }
+  # }
+  # 
 
+  # Higher order indirect effect
+  
+  
+  
   
   
   
