@@ -35,8 +35,8 @@ DirectComp <- function(net, t1, t2, effect){
     mutate(TE = ifelse(flip_ind, 
                        -TE_old,
                        TE_old)) %>%
-    mutate(treat1 = ifelse(flip_ind, t1, treat2)) %>%
-    mutate(treat2 = ifelse(flip_ind, t2, treat1))
+    mutate(treat1 = ifelse(flip_ind, treat2, treat1)) %>%
+    mutate(treat2 = ifelse(flip_ind, treat1, treat2))
   
   
   MA <- metagen(TE, seTE, studlab, data=d, sm=sm, 

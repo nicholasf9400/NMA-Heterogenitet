@@ -72,7 +72,7 @@ IndComb <- function(net, t1, t2, effect){
                           data = ind_data)
       
       # Collect data for output
-      ind.res[k,] <- c(intermediate.int, ind.effect, seind.effect, net_temp$I2)
+      ind.res[k,] <- c(intermediate.int, ind.effect, seind.effect, round(net_temp$I2, 2))
       k <- k+1
     }
   }
@@ -135,8 +135,8 @@ IndComb <- function(net, t1, t2, effect){
       ind.res[,1],
       paste0(round(ind.res[,2], 2), ' (', round(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3]),2), '-', round(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3]),2), ')'),
       ind.res[,3],
-      round(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3]), 2),
-      round(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3]), 2),
+      round(as.numeric(ind.res[,2]) - 1.96*as.numeric(ind.res[,3]), 2),
+      round(as.numeric(ind.res[,2]) + 1.96*as.numeric(ind.res[,3]), 2),
       ind.res[,2],
       paste0(ind.res[,4],'%')
     )
