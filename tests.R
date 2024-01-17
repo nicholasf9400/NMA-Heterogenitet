@@ -12,8 +12,6 @@ d <- pairwise(treat = list(treat1, treat2),
 
 net <- netmeta(d, sm = 'RR', reference.group = 'Placebo')
 
-netgraph(net)
-
 #Which direct effect contribute to a arbitrary mixed estimate
 #Inputs
 t1 <- "TCA"

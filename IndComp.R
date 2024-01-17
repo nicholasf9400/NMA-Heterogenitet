@@ -1,7 +1,7 @@
 IndComb <- function(net, t1, t2, effect){
   
-  require(igraph)
-  require(dplyr)
+  require(igraph, quietly = T)
+  require(dplyr, quietly = T)
   
   # Check class of input
   if (class(net) != 'netmeta') {
@@ -9,28 +9,29 @@ IndComb <- function(net, t1, t2, effect){
   }
   
   # Check if measure of effect requires log transform
-  log_sm <- net$sm == 'HR' | net$sm == 'OR' | net$sm == 'RR'
+  log_sm <- (net$sm == 'HR' | net$sm == 'OR' | net$sm == 'RR')
   
   # t1:t2 may be switched depending on alphabetical order
-  t_list <- c(t1,t2)
+  t_list <- c(t1, t2)
   t_list <- t_list[order(t_list)]
   comp <- paste0(t_list[1],':',t_list[2]); rm(t_list)
 
   # Use igraph to determine all first order loops in network
   graph <- igraph::graph_from_adjacency_matrix(net$A.matrix, mode = 'undirected')
-  ind.paths <- igraph::all_simple_paths(graph, from = t1, to = t2, cutoff = 2)
+  ind.paths <- igraph::all_simple_paths(graph, 
+                                        from = t1, 
+                                        to = t2, 
+                                        cutoff = 2)
   
   # Process output from the igraph package
   ind <- sapply(ind.paths, 
                 function(x){
-                  if(length(x)==3){
-                    return(1)
-                  }else{return(0)}
+                  as.numeric(length(x)==3)
                 }
   )
   
   # Extract and compute indirect effect for all first order loops in network
-  ind.res <- matrix(NA, sum(ind==1), 4)
+  ind.res <- matrix(NA, sum(ind), 4)
   k <- 1
   for (i in 1:length(ind)){
     if(ind[i] == 1){
@@ -57,11 +58,19 @@ IndComb <- function(net, t1, t2, effect){
       seind.effect <- sqrt(dr1.se^2 + dr2.se^2)
       
       # Format data to perform truncated NMA for I2 estimation
-      ind_data <- net$data %>% filter((treat1 == t1 | treat1 == t2 | treat1 == intermediate.int) & (treat2 == t1 | treat2 == t2 | treat2 == intermediate.int)) %>%
-        filter(!(treat1 == t1 & treat2 == t2) | !(treat1 == t2 & treat2 == t2))
-      
+      ind_data <- net$data %>% 
+        filter(((treat1 == t1) & (treat2 == intermediate.int)) | 
+                 (treat1 == intermediate.int & treat2 == t2))
+
       # Correct class
       class(ind_data) <- c("pairwise", "data.frame")
+      
+      n_stud <- unique(ind_data$studlab)
+      
+      # If multiarm studies are
+      if (n_stud > nrow(ind_data)) {
+        
+      }
       
       # Do NMA
       net_temp <- netmeta(TE = TE,
@@ -76,36 +85,7 @@ IndComb <- function(net, t1, t2, effect){
       k <- k+1
     }
   }
-  
-  # ind.paths <- igraph::all_simple_paths(graph, from = t1, to = t2, cutoff = -1)
-  # 
-  # paths <- list()
-  # k <- 1
-  # for (i in 1:length(ind.paths)) {
-  #   if (length(ind.paths[[i]]) > 3) {
-  #     paths[[k]] <- ind.paths[[i]]
-  #     k <- k + 1
-  #   }
-  # }
-  # rm(ind.paths)
-  # 
-  # # Get relevant edges
-  # 
-  # edges <- c()
-  # for (i in 1:length(paths)) {
-  #   for (j in 1:(length(paths[[i]])-1)) {
-  #     edges <- rbind(edges, c(names(paths[[i]][j]), names(paths[[i]][j+1])))
-  #   }
-  # }
-  # 
 
-  # Higher order indirect effect
-  
-  
-  
-  
-  
-  
   # TOTAL INDIRECT EFFECT
   ind.TE <- get(paste0('TE.indirect.', effect), net)[t1,t2]
   ind.seTE <- get(paste0('seTE.indirect.', effect), net)[t1,t2]
