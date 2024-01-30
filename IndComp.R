@@ -26,7 +26,7 @@ IndComb <- function(net, t1, t2, effect){
   # Process output from the igraph package
   ind <- sapply(ind.paths, 
                 function(x){
-                  as.numeric(length(x)==3)
+                  as.numeric(length(x) == 3)
                 }
   )
   
@@ -53,7 +53,7 @@ IndComb <- function(net, t1, t2, effect){
       dr2.se <- se.effect[intermediate.int, t2]
       
       # Bucher adjusted indirect comparison as estimate for first order indirect
-      # effect
+      # effect. NB: Does not take multiarm studies into account. 
       ind.effect <- round(dr1 - dr2, 2)
       seind.effect <- sqrt(dr1.se^2 + dr2.se^2)
       
@@ -65,26 +65,52 @@ IndComb <- function(net, t1, t2, effect){
       # Correct class
       class(ind_data) <- c("pairwise", "data.frame")
       
-      n_stud <- unique(ind_data$studlab)
+      n_stud <- length(unique(ind_data$studlab))
       
-      # If multiarm studies are
-      if (n_stud > nrow(ind_data)) {
-        
+      # If multiarm studies are not present, do NMA, else return NA.
+      if (n_stud == nrow(ind_data)) {
+        # Do NMA
+        net_temp <- netmeta(TE = TE,
+                            seTE = seTE,
+                            treat1 = treat1, 
+                            treat2 = treat2,
+                            studlab = studlab,
+                            data = ind_data)$I2
+      }else{
+        net_temp <- NA
       }
       
-      # Do NMA
-      net_temp <- netmeta(TE = TE,
-                          seTE = seTE,
-                          treat1 = treat1, 
-                          treat2 = treat2,
-                          studlab = studlab,
-                          data = ind_data)
+
       
       # Collect data for output
-      ind.res[k,] <- c(intermediate.int, ind.effect, seind.effect, round(net_temp$I2, 2))
+      ind.res[k,] <- c(intermediate.int, ind.effect, seind.effect, round(net_temp, 2))
       k <- k+1
     }
   }
+  
+  # Check if higher order effects can be separated. 
+  adjacency_temp <- net$A.matrix
+  
+  # Remove edges representing direct evidence
+  dat <- net$data %>% filter((treat))
+  
+  adjacency_temp[t1, t2] <- 0
+  adjacency_temp[t2, t1] <- 0
+  
+  for (i in 1:nrow(ind.res)) {
+    adjacency_temp[t1, ind.res[i, 1]] <- 0
+    adjacency_temp[ind.res[i, 1], t1] <- 0
+    
+    adjacency_temp[t2, ind.res[i, 1]] <- 0
+    adjacency_temp[ind.res[i, 1], t2] <- 0
+  }
+  
+  temp_graph <- graph.adjacency(adjacency_temp)
+  
+  if (is_connected(temp_graph)){
+    
+  }
+  
 
   # TOTAL INDIRECT EFFECT
   ind.TE <- get(paste0('TE.indirect.', effect), net)[t1,t2]
@@ -96,19 +122,23 @@ IndComb <- function(net, t1, t2, effect){
       t1,
       t2,
       ind.res[,1],
-      paste0(round(exp(as.numeric(ind.res[,2])), 2), ' (', round(exp(as.numeric(ind.res[,2]) -1.96*as.numeric(ind.res[,3])),2), '-', round(exp(as.numeric(ind.res[,2]) +1.96*as.numeric(ind.res[,3])),2), ')'),
+      paste0(round(exp(as.numeric(ind.res[,2])), 2), ' (', 
+             round(exp(as.numeric(ind.res[,2]) - 1.96 * as.numeric(ind.res[,3])), 2), '-', 
+             round(exp(as.numeric(ind.res[,2]) + 1.96 * as.numeric(ind.res[,3])), 2), ')'),
       ind.res[,3],
-      round(exp(as.numeric(ind.res[,2]) - 1.96*as.numeric(ind.res[,3])), 2),
-      round(exp(as.numeric(ind.res[,2]) + 1.96*as.numeric(ind.res[,3])), 2),
+      round(exp(as.numeric(ind.res[,2]) - 1.96 * as.numeric(ind.res[,3])), 2),
+      round(exp(as.numeric(ind.res[,2]) + 1.96 * as.numeric(ind.res[,3])), 2),
       exp(as.numeric(ind.res[,2])),
       paste0(ind.res[,4],'%')
     )
     
     tot.ind <- data.frame('Total Indrect Effect (95% CI)','','', 
-                          paste0(round(exp(ind.TE), 2), ' (', round(exp(ind.TE-1.96*ind.seTE), 2), '-', round(exp(ind.TE+1.96*ind.seTE), 2), ')'), 
+                          paste0(round(exp(ind.TE), 2), ' (', 
+                                 round(exp(ind.TE - 1.96 * ind.seTE), 2), '-', 
+                                 round(exp(ind.TE + 1.96 * ind.seTE), 2), ')'), 
                           ind.seTE,
-                          exp(ind.TE - 1.96*ind.seTE), 
-                          exp(ind.TE + 1.96*ind.seTE), 
+                          exp(ind.TE - 1.96 * ind.seTE), 
+                          exp(ind.TE + 1.96 * ind.seTE), 
                           exp(ind.TE), 
                           ' ')
   }else{
