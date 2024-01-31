@@ -89,21 +89,32 @@ IndComb <- function(net, t1, t2, effect){
   }
   
   # Check if higher order effects can be separated. 
-  adjacency_temp <- net$A.matrix
-  
+  # adjacency_temp <- net$A.matrix
+  # 
   # Remove edges representing direct evidence
-  dat <- net$data %>% filter((treat))
+  dat <- net$data %>% filter(!((treat1 == t1) & (treat2 == t2))) %>% 
+    filter(!(treat1 == t2 & treat2 == t1))
   
-  adjacency_temp[t1, t2] <- 0
-  adjacency_temp[t2, t1] <- 0
-  
-  for (i in 1:nrow(ind.res)) {
-    adjacency_temp[t1, ind.res[i, 1]] <- 0
-    adjacency_temp[ind.res[i, 1], t1] <- 0
+  for (i in 1:nrow(ind.res)){
     
-    adjacency_temp[t2, ind.res[i, 1]] <- 0
-    adjacency_temp[ind.res[i, 1], t2] <- 0
+    dat <- dat %>% filter(!(treat1 == t1 & treat2 == ind.res[i, 1])) %>%
+      filter(!(treat1 == ind.res[i, 1] & treat2 == t1)) %>%
+      filter(!(treat1 == t2 & treat2 == ind.res[i, 1])) %>%
+      filter(!(treat1 == ind.res[i, 1] & treat2 == t2))
+    # 
+    # 
+    # adjacency_temp[t1, ind.res[i, 1]] <- 0
+    # adjacency_temp[ind.res[i, 1], t1] <- 0
+    # 
+    # adjacency_temp[t2, ind.res[i, 1]] <- 0
+    # adjacency_temp[ind.res[i, 1], t2] <- 0
   }
+  
+  # Fix class
+  class(dat)
+  
+  
+  
   
   temp_graph <- graph.adjacency(adjacency_temp)
   
