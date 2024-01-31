@@ -101,28 +101,27 @@ IndComb <- function(net, t1, t2, effect){
       filter(!(treat1 == ind.res[i, 1] & treat2 == t1)) %>%
       filter(!(treat1 == t2 & treat2 == ind.res[i, 1])) %>%
       filter(!(treat1 == ind.res[i, 1] & treat2 == t2))
-    # 
-    # 
-    # adjacency_temp[t1, ind.res[i, 1]] <- 0
-    # adjacency_temp[ind.res[i, 1], t1] <- 0
-    # 
-    # adjacency_temp[t2, ind.res[i, 1]] <- 0
-    # adjacency_temp[ind.res[i, 1], t2] <- 0
   }
   
-  # Fix class
-  class(dat)
+  # Do nma ignoring multiarms studies
+  dat$new_id <- 1:nrow(dat)
   
-  
-  
-  
-  temp_graph <- graph.adjacency(adjacency_temp)
-  
-  if (is_connected(temp_graph)){
-    
-  }
+  net_temp <- try(netmeta(TE, seTE, treat1, treat2, studlab = new_id, data = dat))
   
 
+  
+  if (class(net_temp) == 'netmeta') {
+    nma_est <- get(paste0('TE.nma.', effect), net_temp)
+    nma_se <- get(paste0('seTE.nma.', effect), net_temp)
+    nma_lower <- get(paste0('lower.nma.', effect), net_temp)
+    nma_upper <- get(paste0('upper.nma.', effect), net_temp)
+    
+    higher_ind_out <- c('Higher order indirect effect (95% CI)', '', '',
+                        paste0())
+  }
+
+  
+  
   # TOTAL INDIRECT EFFECT
   ind.TE <- get(paste0('TE.indirect.', effect), net)[t1,t2]
   ind.seTE <- get(paste0('seTE.indirect.', effect), net)[t1,t2]
