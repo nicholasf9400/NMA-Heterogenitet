@@ -103,25 +103,44 @@ IndComb <- function(net, t1, t2, effect){
       filter(!(treat1 == ind.res[i, 1] & treat2 == t2))
   }
   
+  
+  
   # Do nma ignoring multiarms studies
   dat$new_id <- 1:nrow(dat)
   
   net_temp <- try(netmeta(TE, seTE, treat1, treat2, studlab = new_id, data = dat))
   
-
-  
+  # If NMA successful, continue
   if (class(net_temp) == 'netmeta') {
-    nma_est <- get(paste0('TE.nma.', effect), net_temp)
-    nma_se <- get(paste0('seTE.nma.', effect), net_temp)
-    nma_lower <- get(paste0('lower.nma.', effect), net_temp)
-    nma_upper <- get(paste0('upper.nma.', effect), net_temp)
-    
-    higher_ind_out <- c('Higher order indirect effect (95% CI)', '', '',
-                        paste0())
+    if (any(net_temp$trts == t1) & any(net_temp$trts == t2)) {
+      
+      
+      nma_est <- get(paste0('TE.', effect), net_temp)[t1, t2]
+      nma_se <- get(paste0('seTE.', effect), net_temp)[t1, t2]
+      nma_lower <- get(paste0('lower.', effect), net_temp)[t1, t2]
+      nma_upper <- get(paste0('upper.', effect), net_temp)[t1, t2]
+      
+      if (log_sm) {
+        
+        higher_ind_out <- c('Higher order indirect effect (95% CI)', '', '',
+                            paste0(round(exp(nma_est), 2), '(', round(exp(nma_lower), 2), '-', round(exp(nma_upper), 2), ')'),
+                            nma_se, 
+                            exp(nma_lower), 
+                            exp(nma_upper), 
+                            exp(nma_est), 
+                            '')
+        
+        
+      }else{
+        
+        higher_ind_out <- c('Higher order indirect effect (95% CI)', '', '',
+                            paste0(round(nma_est, 2), '(', round(nma_lower, 2), '-', round(nma_upper, 2), ')'),
+                            nma_se, nma_lower, nma_upper, nma_est, '')
+      }
+      
+    }
   }
 
-  
-  
   # TOTAL INDIRECT EFFECT
   ind.TE <- get(paste0('TE.indirect.', effect), net)[t1,t2]
   ind.seTE <- get(paste0('seTE.indirect.', effect), net)[t1,t2]
@@ -176,8 +195,9 @@ IndComb <- function(net, t1, t2, effect){
   # Name output for compiling results
   colnames(out) <- c('Treatment 1', 'Treatment 2', "via", paste0(net$sm, ' (95% CI)'), 'se', 'lower', 'upper', 'est', "I2")
   colnames(tot.ind) <- colnames(out)
+  colnames(higher_ind_out) <- colnames(out)
   
   # Output
-  out <- rbind(out, tot.ind)
+  out <- rbind(out, tot.ind, higher_ind_out)
   return(out)
 }
