@@ -1,4 +1,4 @@
-IndComb <- function(net, t1, t2, effect){
+IndComp <- function(net, t1, t2, effect){
   
   require(igraph, quietly = T)
   require(dplyr, quietly = T)
@@ -29,6 +29,7 @@ IndComb <- function(net, t1, t2, effect){
                   as.numeric(length(x) == 3)
                 }
   )
+  
   
   # Extract and compute indirect effect for all first order loops in network
   ind.res <- matrix(NA, sum(ind), 4)
@@ -87,10 +88,7 @@ IndComb <- function(net, t1, t2, effect){
       k <- k+1
     }
   }
-  
-  # Check if higher order effects can be separated. 
-  # adjacency_temp <- net$A.matrix
-  # 
+
   # Remove edges representing direct evidence
   dat <- net$data %>% filter(!((treat1 == t1) & (treat2 == t2))) %>% 
     filter(!(treat1 == t2 & treat2 == t1))
@@ -107,13 +105,13 @@ IndComb <- function(net, t1, t2, effect){
   
   # Do nma ignoring multiarms studies
   dat$new_id <- 1:nrow(dat)
-  
   net_temp <- try(netmeta(TE, seTE, treat1, treat2, studlab = new_id, data = dat))
   
   # If NMA successful, continue
   if (class(net_temp) == 'netmeta') {
     if (any(net_temp$trts == t1) & any(net_temp$trts == t2)) {
       
+      high_order_exists <- T
       
       nma_est <- get(paste0('TE.', effect), net_temp)[t1, t2]
       nma_se <- get(paste0('seTE.', effect), net_temp)[t1, t2]
@@ -195,9 +193,17 @@ IndComb <- function(net, t1, t2, effect){
   # Name output for compiling results
   colnames(out) <- c('Treatment 1', 'Treatment 2', "via", paste0(net$sm, ' (95% CI)'), 'se', 'lower', 'upper', 'est', "I2")
   colnames(tot.ind) <- colnames(out)
-  colnames(higher_ind_out) <- colnames(out)
+
   
   # Output
-  out <- rbind(out, tot.ind, higher_ind_out)
+  out <- rbind(out, tot.ind)
+  
+  # If higher order indirect effects are found, add them to output.
+  if (exists('high_order_exists')) {
+    colnames(higher_ind_out) <- colnames(out)
+    
+    out <- rbind(out, higher_ind_out)
+  }
+  
   return(out)
 }
