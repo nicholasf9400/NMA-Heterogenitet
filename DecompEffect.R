@@ -195,7 +195,7 @@ DecompEffect <- function(net, t1, t2, effect){
                                   upper = as.numeric(it$upper),
                                   ci_column = 6,
                                   x_trans = ifelse(log_sm, 'log', 'none'), 
-                                  title = 'First Order Indirect effects',
+                                  title = 'Indirect effects',
                                   theme = theme,
                                   xlim = c(min.scale, max.scale),
                                   is_summary = c(rep(F, nrow(it) - 1), T))
@@ -213,7 +213,7 @@ DecompEffect <- function(net, t1, t2, effect){
                        rep(' ', nrow(tot.effect)), 
                        rep(' ', nrow(tot.effect)), 
                        rep(' ', nrow(tot.effect)), 
-                       tot.effect[,4:8]))
+                       tot.effect[, 4:8]))
     colnames(tt) <- c('Treatment 1', 'Treatment 2', " "," "," ", 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
     
     tt_temp <- tt[, 1:7]
