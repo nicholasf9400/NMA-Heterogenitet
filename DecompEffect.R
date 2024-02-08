@@ -4,9 +4,9 @@ source('TotalEffect.R')
 
 DecompEffect <- function(net, t1, t2, effect){
   
-  require(forestplot)
-  require(forestploter)
-  require(grid)
+  require(forestplot, quietly = T)
+  require(forestploter, quietly = T)
+  require(grid, quietly = T)
   
   
   # t1:t2 may be switched depending on alphabetical order
@@ -146,7 +146,7 @@ DecompEffect <- function(net, t1, t2, effect){
     # Extracting direct, indirect and total effects
     a <- DirectComp(net,t1,t2,effect)
     dir.effect <- a$ef
-    ind.effect <- IndComb(net,t1,t2,effect)
+    ind.effect <- IndComp(net,t1,t2,effect)
     tot.effect <- TotalEffect(t1, t2, net, effect)
     
     # Scale of forest plot
@@ -176,7 +176,7 @@ DecompEffect <- function(net, t1, t2, effect){
                        gp = gpar(fontface = 'bold'))
     
     # Add footnote with heterogeneity info
-    p.dir <- add_grob(p.dir, row = nrow(dt)+1, col = 1:6, order = "background", 
+    p.dir <- add_grob(p.dir, row = nrow(dt) + 1, col = 1:6, order = "background", 
                       gb_fn = gridtext::richtext_grob,
                       text = a$fn,
                       gp = gpar(fontsize = 8),
@@ -185,11 +185,11 @@ DecompEffect <- function(net, t1, t2, effect){
                       x = unit(0,'npc'), y = unit(1, "npc"))
     
     # Format indirect effect data for plotting
-    it <- data.frame(cbind(ind.effect[,1:3], ind.effect[,9], rep(' ', nrow(ind.effect)), rep(' ', nrow(ind.effect)), ind.effect[,4:8]))
+    it <- data.frame(cbind(ind.effect[, 1:3], ind.effect[, 9], rep(' ', nrow(ind.effect)), rep(' ', nrow(ind.effect)), ind.effect[,4:8]))
     colnames(it) <- c('Treatment 1', 'Treatment 2', 'via', 'I2%', ' ', 'Outcome', 'RR (95% CI)', 'se', 'lower', 'upper', 'est')
     
     # Plot first order and total indirect effects
-    p.ind <- forestploter::forest(it[,1:7], 
+    p.ind <- forestploter::forest(it[, 1:7], 
                                   est = as.numeric(it$est),
                                   lower = as.numeric(it$lower),
                                   upper = as.numeric(it$upper),
@@ -198,7 +198,7 @@ DecompEffect <- function(net, t1, t2, effect){
                                   title = 'First Order Indirect effects',
                                   theme = theme,
                                   xlim = c(min.scale, max.scale),
-                                  is_summary = c(rep(F, nrow(it)-1), T))
+                                  is_summary = c(rep(F, nrow(it) - 1), T))
     
     # Bold text for total indirect effect
     p.ind <- edit_plot(p.ind,
