@@ -62,6 +62,8 @@ IndComp <- function(net, t1, t2, effect){
       ind_data <- net$data %>% 
         filter(((treat1 == t1) & (treat2 == intermediate.int)) | 
                  (treat1 == intermediate.int & treat2 == t2))
+      
+      
       ind_data$id <- 1:nrow(ind_data)
 
       # Correct class
@@ -97,8 +99,6 @@ IndComp <- function(net, t1, t2, effect){
       filter(!(treat1 == t2 & treat2 == ind.res[i, 1])) %>%
       filter(!(treat1 == ind.res[i, 1] & treat2 == t2))
   }
-  
-  
   
   # Do nma ignoring multiarms studies
   dat$new_id <- 1:nrow(dat)
