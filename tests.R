@@ -19,17 +19,17 @@ t2 <- "Placebo"
 effect <- 'random'
 net <- net
 
-source('DirectComp.R')
-
-DirectComp(net, t1, t2, 'random')
-
-source('IndComp.R')
-
-IndComp(net, t1, t2, 'random')
-
-source('TotalEffect.R')
-
-TotalEffect(t1, t2, net, 'random')
+# source('DirectComp.R')
+# 
+# DirectComp(net, t1, t2, 'random')
+# 
+# source('IndComp.R')
+# 
+# IndComp(net, t1, t2, 'random')
+# 
+# source('TotalEffect.R')
+# 
+# TotalEffect(t1, t2, net, 'random')
 
 source('DecompEffect.R')
 

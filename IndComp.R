@@ -55,8 +55,8 @@ IndComp <- function(net, t1, t2, effect){
       
       # Bucher adjusted indirect comparison as estimate for first order indirect
       # effect. NB: Does not take multiarm studies into account. 
-      ind.effect <- round(dr1 - dr2, 2)
-      seind.effect <- sqrt(dr1.se^2 + dr2.se^2)
+      # ind.effect <- round(dr1 - dr2, 2)
+      # seind.effect <- sqrt(dr1.se^2 + dr2.se^2)
       
       # Format data to perform truncated NMA for I2 estimation
       ind_data <- net$data %>% 
@@ -67,19 +67,21 @@ IndComp <- function(net, t1, t2, effect){
       # Correct class
       class(ind_data) <- c("pairwise", "data.frame")
       
-      n_stud <- length(unique(ind_data$studlab))
-      
-      # Do NMA
+      # Do NMA to get I
       net_temp <- netmeta(TE = TE,
                           seTE = seTE,
                           treat1 = treat1, 
                           treat2 = treat2,
                           studlab = id,
-                          data = ind_data)$I2
+                          data = ind_data)
+      
+      ind.effect <- get(paste0('TE.', effect), net_temp)[t1, t2]
+      seind.effect <- get(paste0('seTE.', effect), net_temp)[t1, t2]
+      I2.temp <- get('I2', net_temp)
 
       
       # Collect data for output
-      ind.res[k,] <- c(intermediate.int, ind.effect, seind.effect, round(net_temp, 2))
+      ind.res[k,] <- c(intermediate.int, ind.effect, seind.effect, round(I2.temp, 2))
       k <- k+1
     }
   }
